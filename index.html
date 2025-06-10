@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>İnşaat Maliyet Hesaplama</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f0f4f8;
+      padding: 20px;
+      color: #333;
+    }
+
+    h1 {
+      text-align: center;
+      color: #2c3e50;
+    }
+
+    form {
+      max-width: 400px;
+      margin: 20px auto;
+      padding: 20px;
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+
+    label {
+      display: block;
+      margin-top: 15px;
+    }
+
+    input {
+      width: 100%;
+      padding: 10px;
+      margin-top: 5px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+    }
+
+    button {
+      margin-top: 20px;
+      width: 100%;
+      padding: 12px;
+      background: #3498db;
+      border: none;
+      color: white;
+      font-weight: bold;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: #2980b9;
+    }
+
+    .card {
+      max-width: 400px;
+      margin: 20px auto;
+      background: #e8f6f3;
+      padding: 20px;
+      border-left: 6px solid #2ecc71;
+      border-radius: 10px;
+      font-size: 16px;
+      line-height: 1.6;
+    }
+
+    .error {
+      background: #fdecea;
+      border-left: 6px solid #e74c3c;
+      color: #c0392b;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>İnşaat Maliyet Hesaplayıcı</h1>
+
+  <form id="maliyetForm">
+    <label for="kat">Kat Sayısı:</label>
+    <input type="number" id="kat" name="kat" required>
+
+    <label for="alan">İnşaat Alanı (m²):</label>
+    <input type="number" id="alan" name="alan" required>
+
+    <button type="submit">Hesapla</button>
+  </form>
+
+  <div id="sonuc"></div>
+
+  <script>
+    document.getElementById("maliyetForm").addEventListener("submit", function(e) {
+      e.preventDefault();
+
+      const kat = document.getElementById("kat").value;
+      const alan = document.getElementById("alan").value;
+
+      fetch("https://yunushamza.app.n8n.cloud/webhook/insaat-maliyet", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded"
+        },
+        body: new URLSearchParams({ kat, alan })
+      })
+      .then(response => response.json())
+      .then(data => {
+        const div = document.getElementById("sonuc");
+
+        if (data.toplamMaliyet) {
+          div.innerHTML = `
+            <div class="card">
+              <strong>Kat Sayısı:</strong> ${data.kat}<br>
+              <strong>Alan:</strong> ${data.alan} m²<br>
+              <strong>Birim Fiyat:</strong> ${data.birimFiyat.toLocaleString("tr-TR")} TL/m²<br>
+              <strong>Toplam Maliyet:</strong> <span style="color:#2ecc71;font-size:1.2em;">${data.toplamMaliyet.toLocaleString("tr-TR")} TL</span>
+            </div>`;
+        } else if (data.error) {
+          div.innerHTML = `<div class="card error">Hata: ${data.error}</div>`;
+        } else {
+          div.innerHTML = `<div class="card error">Beklenmeyen bir hata oluştu.</div>`;
+        }
+      })
+      .catch(err => {
+        document.getElementById("sonuc").innerHTML = `<div class="card error">İstek sırasında hata: ${err}</div>`;
+      });
+    });
+  </script>
+
+</body>
+</html>
